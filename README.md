@@ -53,7 +53,7 @@ Você precisará de uma chave de API do Google Gemini para usar esta aplicação
 2.  Adicione sua chave de API a este arquivo:
 
     ```env
-    API_KEY=SUA_CHAVE_DE_API_GEMINI_AQUI
+    GEMINI_API_KEY=SUA_CHAVE_DE_API_GEMINI_AQUI
     ```
 
     Substitua `SUA_CHAVE_DE_API_GEMINI_AQUI` pela sua chave real. O `process.env.API_KEY` no código irá carregar esta variável automaticamente em ambientes de desenvolvimento que suportam arquivos `.env`.
