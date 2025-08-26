@@ -1,70 +1,73 @@
-# React + TypeScript + Vite
+# Gemini Chat UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Uma interface de chatbot moderna e elegante, desenvolvida com a API Gemini. Apresenta respostas em tempo real, uma UI com tema escuro e funcionalidades de Progressive Web App (PWA) para acesso offline.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Streaming em Tempo Real:** Receba respostas da API Gemini à medida que são geradas.
+- **Gerenciamento de Workspaces:** Organize suas conversas em diferentes espaços de trabalho (ex: "Pessoal", "Projetos de Trabalho").
+- **Histórico de Conversas:** Todas as conversas são salvas automaticamente no armazenamento local do seu navegador.
+- **Pronto para PWA:** Pode ser instalado como um Progressive Web App para uma experiência semelhante a um aplicativo nativo e acesso offline à interface.
+- **Busca de Chats:** Encontre conversas antigas rapidamente dentro de um workspace.
+- **Seleção de Modelo:** Escolha qual modelo Gemini usar para suas conversas através do painel de configurações.
+- **UI Moderna:** Uma interface limpa, responsiva e com tema escuro, construída com Tailwind CSS.
 
-## Expanding the ESLint configuration
+## Tecnologias Utilizadas
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Framework:** React
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS
+- **IA:** Google Gemini API (`@google/genai`)
+- **Carregamento de Módulos:** ES Modules via `importmap`
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Pré-requisitos
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Antes de começar, garanta que você tenha o seguinte instalado:
+- [Node.js](https://nodejs.org/) (versão 18 ou superior é recomendada)
+- [npm](https://www.npmjs.com/) (ou yarn/pnpm)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Como Rodar a Aplicação
+
+Siga estes passos para executar a aplicação na sua máquina local.
+
+### 1. Clone o Repositório
+
+Primeiro, clone este repositório para a sua máquina:
+```bash
+git clone <url-do-repositorio>
+cd <diretorio-do-repositorio>
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Instale as Dependências
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Instale as dependências necessárias do projeto:
+```bash
+npm i
 ```
-# projeto-PWII
+
+### 3. Configure as Variáveis de Ambiente
+
+Você precisará de uma chave de API do Google Gemini para usar esta aplicação.
+
+1.  Crie um novo arquivo chamado `.env.local` na raiz do projeto.
+2.  Adicione sua chave de API a este arquivo:
+
+    ```env
+    API_KEY=SUA_CHAVE_DE_API_GEMINI_AQUI
+    ```
+
+    Substitua `SUA_CHAVE_DE_API_GEMINI_AQUI` pela sua chave real. O `process.env.API_KEY` no código irá carregar esta variável automaticamente em ambientes de desenvolvimento que suportam arquivos `.env`.
+
+### 4. Execute o Servidor de Desenvolvimento
+
+Para iniciar a aplicação em modo de desenvolvimento, execute:
+```bash
+npm run dev
+```
+
+Isso iniciará um servidor de desenvolvimento (como o Vite, por exemplo). Você poderá visualizar a aplicação acessando o endereço indicado no seu terminal (geralmente `http://localhost:5173`) no seu navegador.
+
+---
+
+Agora você está pronto para conversar com a API Gemini!
+
