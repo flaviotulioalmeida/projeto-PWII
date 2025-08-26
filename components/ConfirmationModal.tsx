@@ -2,15 +2,19 @@
 import React from 'react';
 import Icon from './Icon';
 
+// Define as propriedades para o modal de confirmação.
 interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  children: React.ReactNode;
-  confirmText?: string;
+  children: React.ReactNode; // Conteúdo a ser exibido (ex: texto de confirmação).
+  confirmText?: string; // Texto para o botão de confirmação.
 }
 
+/**
+ * Componente de modal genérico para solicitar confirmação do usuário para ações destrutivas.
+ */
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
@@ -19,6 +23,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   children,
   confirmText = 'Confirm',
 }) => {
+  // Efeito para permitir fechar o modal com a tecla 'Escape'.
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -35,10 +40,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     };
   }, [isOpen, onClose]);
 
+  // Não renderiza nada se estiver fechado.
   if (!isOpen) {
     return null;
   }
 
+  // Lida com a confirmação, executando a ação e fechando o modal.
   const handleConfirm = () => {
     onConfirm();
     onClose();
@@ -65,10 +72,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </button>
         </div>
         
+        {/* Conteúdo dinâmico do modal */}
         <div className="mb-6 text-zinc-300">
           {children}
         </div>
 
+        {/* Botões de ação */}
         <div className="flex justify-end items-center gap-3">
           <button
             type="button"

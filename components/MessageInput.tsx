@@ -1,20 +1,27 @@
 import React from 'react';
 import Icon from './Icon';
 
+// Define as propriedades para o componente de entrada de mensagem.
 interface MessageInputProps {
-  onSendMessage: (message: string) => void;
-  isLoading: boolean;
-  disabled?: boolean;
+  onSendMessage: (message: string) => void; // Função para ser chamada quando uma mensagem é enviada.
+  isLoading: boolean; // Indica se uma resposta está sendo carregada.
+  disabled?: boolean; // Desabilita o campo de entrada (ex: se nenhum chat estiver selecionado).
 }
 
+/**
+ * Componente de formulário para o usuário digitar e enviar mensagens.
+ */
 const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, disabled }) => {
+  // Estado para armazenar o texto da mensagem atual.
   const [message, setMessage] = React.useState('');
 
+  // Função para lidar com o envio do formulário.
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Previne o recarregamento da página.
+    // Verifica se a mensagem não está vazia e se não há carregamento em andamento.
     if (message.trim() && !isLoading && !disabled) {
-      onSendMessage(message.trim());
-      setMessage('');
+      onSendMessage(message.trim()); // Chama a função do pai para enviar a mensagem.
+      setMessage(''); // Limpa o campo de entrada.
     }
   };
 
@@ -47,6 +54,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, d
           </Icon>
         </button>
       </form>
+      {/* Botão de ajuda */}
       <div className="absolute right-4 bottom-4">
         <button className="w-8 h-8 rounded-full bg-zinc-700 text-zinc-300 flex items-center justify-center">?</button>
       </div>

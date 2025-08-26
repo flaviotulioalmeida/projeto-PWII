@@ -2,6 +2,7 @@
 import React from 'react';
 import Icon from './Icon';
 
+// Define as propriedades para o componente SettingsModal.
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +14,9 @@ interface SettingsModalProps {
   availableModels: string[];
 }
 
+/**
+ * Componente modal para exibir e alterar as configurações rápidas da aplicação.
+ */
 const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
@@ -23,6 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onModelChange,
   availableModels,
 }) => {
+  // Não renderiza nada se o modal não estiver aberto.
   if (!isOpen) {
     return null;
   }
@@ -30,15 +35,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const isPermissionDenied = notificationPermission === 'denied';
 
   return (
+    // Overlay do modal
     <div
       className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center"
-      onClick={onClose}
+      onClick={onClose} // Fecha o modal ao clicar fora dele.
       aria-modal="true"
       role="dialog"
     >
+      {/* Conteúdo do modal */}
       <div
         className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl w-full max-w-md p-6 m-4 text-white"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()} // Impede que o clique no conteúdo feche o modal.
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Quick Settings</h2>
@@ -51,6 +58,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         <div className="divide-y divide-zinc-700">
+          {/* Seção de Notificações */}
           <div className="py-3">
             <div className="flex justify-between items-center">
                 <div>
@@ -58,12 +66,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   <p className="text-sm text-zinc-400">
                     Get notified when a response is ready and you're on another tab.
                   </p>
+                  {/* Mensagem de erro se a permissão foi negada */}
                   {isPermissionDenied && (
                     <p className="text-xs text-red-400 mt-1">
                       Notification permission has been denied in your browser settings.
                     </p>
                   )}
                 </div>
+                {/* Botão de toggle para as notificações */}
                 <button
                   onClick={onNotificationsToggle}
                   disabled={isPermissionDenied}
@@ -81,6 +91,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </button>
             </div>
           </div>
+           {/* Seção de Seleção de Modelo */}
            <div className="py-3">
             <div className="flex justify-between items-center">
                 <div>

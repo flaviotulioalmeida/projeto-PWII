@@ -5,6 +5,7 @@ import { Chat, Workspace } from '../types';
 import WorkspaceModal from './WorkspaceModal';
 import ConfirmationModal from './ConfirmationModal';
 
+// Define as propriedades que o componente Sidebar recebe.
 interface SidebarProps {
   onNewChat: () => void;
   isSidebarOpen: boolean;
@@ -22,12 +23,14 @@ interface SidebarProps {
   onDeleteWorkspace: (id: string) => void;
 }
 
+// Componente auxiliar para os ícones de navegação na barra lateral estreita.
 const NavIcon: React.FC<{ children: React.ReactNode; active?: boolean }> = ({ children, active }) => (
     <div className={`p-2 rounded-lg ${active ? 'bg-zinc-700' : 'hover:bg-zinc-800'}`}>
         <Icon className="w-6 h-6 text-zinc-400">{children}</Icon>
     </div>
 );
 
+// Componente para o menu suspenso de seleção e gerenciamento de workspaces.
 const WorkspaceMenu: React.FC<{
     workspaces: Workspace[];
     activeWorkspace: Workspace | undefined;
@@ -38,10 +41,11 @@ const WorkspaceMenu: React.FC<{
     onTriggerDelete: () => void;
 }> = ({ workspaces, activeWorkspace, onSelectWorkspace, onClose, onTriggerCreate, onTriggerRename, onTriggerDelete }) => {
     
+    // Função para lidar com a exclusão do workspace.
     const handleDelete = () => {
         if (!activeWorkspace) return;
         onTriggerDelete();
-        onClose();
+        onClose(); // Fecha o menu após acionar a exclusão.
     };
     
     return (
@@ -49,6 +53,7 @@ const WorkspaceMenu: React.FC<{
             <div className="p-2">
                 <p className="px-2 py-1 text-xs text-zinc-400 font-semibold">Workspaces</p>
                 <ul className="mt-1">
+                    {/* Lista todos os workspaces disponíveis */}
                     {workspaces.map(ws => (
                         <li key={ws.id}>
                             <button
@@ -65,6 +70,7 @@ const WorkspaceMenu: React.FC<{
                 </ul>
             </div>
             <div className="border-t border-zinc-700 p-2 space-y-1">
+                {/* Ações do menu */}
                 <button onClick={onTriggerCreate} className="w-full text-left px-2 py-1.5 rounded-md hover:bg-zinc-700 text-zinc-300">Create Workspace</button>
                 <button onClick={onTriggerRename} disabled={!activeWorkspace} className="w-full text-left px-2 py-1.5 rounded-md hover:bg-zinc-700 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed">Rename Workspace</button>
                 <button onClick={handleDelete} disabled={!activeWorkspace || workspaces.length <= 1} className="w-full text-left px-2 py-1.5 rounded-md hover:bg-zinc-700 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed">Delete Workspace</button>
@@ -74,17 +80,23 @@ const WorkspaceMenu: React.FC<{
 };
 
 
+/**
+ * Componente principal da barra lateral.
+ * Inclui navegação, seleção de workspace, lista de chats e busca.
+ */
 const Sidebar: React.FC<SidebarProps> = (props) => {
     const { 
         onNewChat, isSidebarOpen, chats, activeChatId, onSelectChat, onDeleteChat, 
         searchQuery, onSearchChange, workspaces, activeWorkspace, onCreateWorkspace, onRenameWorkspace, onDeleteWorkspace
     } = props;
     
+    // Estados para controlar a visibilidade do menu e dos modais.
     const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = React.useState(false);
     const [workspaceModalState, setWorkspaceModalState] = React.useState<{ mode: 'create' | 'rename' | null }>({ mode: null });
     const [isDeleteModalOpen, setDeleteModalOpen] = React.useState(false);
     const menuRef = React.useRef<HTMLDivElement>(null);
 
+     // Efeito para fechar o menu de workspace ao clicar fora dele.
      React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -95,6 +107,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [menuRef]);
 
+    // Funções para abrir os modais de criação e renomeação.
     const handleTriggerCreate = () => {
         setIsWorkspaceMenuOpen(false);
         setWorkspaceModalState({ mode: 'create' });
@@ -106,10 +119,12 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
         setWorkspaceModalState({ mode: 'rename' });
     };
 
+    // Fecha o modal de workspace.
     const handleModalClose = () => {
         setWorkspaceModalState({ mode: null });
     };
 
+    // Submete o formulário do modal de workspace.
     const handleModalSubmit = (name: string) => {
         if (workspaceModalState.mode === 'create') {
             onCreateWorkspace(name);
@@ -119,10 +134,12 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
         handleModalClose();
     };
 
+    // Abre o modal de confirmação de exclusão.
     const handleTriggerDelete = () => {
         setDeleteModalOpen(true);
     };
 
+    // Confirma a exclusão do workspace.
     const handleConfirmDelete = () => {
         if (activeWorkspace) {
             onDeleteWorkspace(activeWorkspace.id);
@@ -132,6 +149,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
     return (
         <>
             <div className={`transition-all duration-300 ease-in-out flex ${isSidebarOpen ? 'w-80' : 'w-16'}`}>
+                {/* Barra de navegação estreita (ícones) */}
                 <div className="bg-black h-full flex flex-col p-3 items-center space-y-4">
                     <NavIcon active>
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -152,8 +170,10 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                         <line x1="3" x2="21" y1="10" y2="10" />
                     </NavIcon>
                 </div>
+                {/* Conteúdo principal da sidebar (visível quando aberta) */}
                 <div className={`bg-zinc-900 h-full flex-grow flex flex-col p-3 overflow-hidden transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex-shrink-0">
+                        {/* Seletor de Workspace */}
                         <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setIsWorkspaceMenuOpen(prev => !prev)}
@@ -176,6 +196,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                             />}
                         </div>
 
+                        {/* Botões de Ação */}
                         <div className="flex items-center mt-4 space-x-2">
                             <button onClick={onNewChat} className="w-full bg-white text-black font-semibold py-2 px-4 rounded-md flex items-center justify-center">
                                 <Icon className="w-5 h-5 mr-2">
@@ -193,6 +214,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                                 </Icon>
                             </button>
                         </div>
+                        {/* Campo de Busca */}
                         <div className="relative mt-4">
                             <input 
                             type="text" 
@@ -204,6 +226,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                         </div>
                     </div>
 
+                    {/* Lista de Chats */}
                     <div className="flex-grow mt-6 overflow-y-auto pr-2">
                         {chats.length > 0 ? (
                             <ul className="space-y-2">
@@ -240,6 +263,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                     </div>
                 </div>
             </div>
+            {/* Modais */}
             <WorkspaceModal
                 isOpen={workspaceModalState.mode !== null}
                 mode={workspaceModalState.mode || 'create'}

@@ -7,21 +7,28 @@ import { Chat, Message, MessageRole, Workspace } from './types';
 import Icon from './components/Icon';
 import SettingsModal from './components/SettingsModal';
 
+// Função auxiliar para gerar IDs únicos.
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
 
+// Modelos de IA disponíveis para seleção.
 const AVAILABLE_MODELS = ['gemini-2.5-flash'];
 
+/**
+ * Carrega os workspaces do localStorage ou cria um workspace padrão se não houver dados salvos.
+ * @returns Um array de workspaces.
+ */
 const loadInitialWorkspaces = (): Workspace[] => {
     try {
         const savedWorkspaces = localStorage.getItem('workspaces');
         if (savedWorkspaces) {
             const parsed = JSON.parse(savedWorkspaces);
-            // Ensure we don't start with a completely empty state if localStorage somehow has '[]'
+            // Garante que não começamos com um estado vazio se o localStorage tiver '[]'.
             if (Array.isArray(parsed) && parsed.length > 0) {
                 return parsed;
             }
         }
 
+        // Cria um workspace padrão se nada for encontrado.
         const defaultWorkspace: Workspace = {
             id: generateId(),
             name: 'Personal Workspace',
@@ -31,7 +38,7 @@ const loadInitialWorkspaces = (): Workspace[] => {
 
     } catch (error) {
         console.error("Failed to load or parse workspaces from localStorage. Starting with a fresh workspace.", error);
-        // Fallback to a single, fresh workspace if anything goes wrong
+        // Fallback para um novo workspace em caso de erro.
         return [{
             id: generateId(),
             name: 'Personal Workspace',
@@ -40,7 +47,11 @@ const loadInitialWorkspaces = (): Workspace[] => {
     }
 };
 
+/**
+ * Componente principal da aplicação.
+ */
 const App: React.FC = () => {
+    // Estados principais da aplicação.
     const [workspaces, setWorkspaces] = React.useState<Workspace[]>(loadInitialWorkspaces);
     const [activeWorkspaceId, setActiveWorkspaceId] = React.useState<string | null>(null);
     const [activeChatId, setActiveChatId] = React.useState<string | null>(null);
@@ -49,29 +60,34 @@ const App: React.FC = () => {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
     
+    // Estado para o modelo de IA selecionado, com persistência no localStorage.
     const [selectedModel, setSelectedModel] = React.useState<string>(() => {
         return localStorage.getItem('selectedModel') || AVAILABLE_MODELS[0];
     });
 
+    // Estado para as notificações, com persistência no localStorage.
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(() => {
         return localStorage.getItem('notificationsEnabled') === 'true';
     });
+    // Estado para a permissão de notificação do navegador.
     const [notificationPermission, setNotificationPermission] = React.useState(Notification.permission);
 
 
-    // to set the active workspace
+    // Efeito para definir o workspace ativo na inicialização.
     React.useEffect(() => {
         const savedActiveWorkspaceId = localStorage.getItem('activeWorkspaceId');
         let currentActiveId = null;
 
+        // Tenta restaurar o último workspace ativo, senão, usa o primeiro da lista.
         if (savedActiveWorkspaceId && workspaces.some(ws => ws.id === savedActiveWorkspaceId)) {
             currentActiveId = savedActiveWorkspaceId;
         } else if (workspaces.length > 0) {
             currentActiveId = workspaces[0].id;
         }
         setActiveWorkspaceId(currentActiveId);
-    }, []);
+    }, []); // Executa apenas uma vez na montagem do componente.
 
+    // Efeitos para salvar estados importantes no localStorage sempre que eles mudam.
     React.useEffect(() => {
         try {
             localStorage.setItem('workspaces', JSON.stringify(workspaces));
@@ -95,14 +111,17 @@ const App: React.FC = () => {
     }, [selectedModel]);
 
 
+    // Memoriza o objeto do workspace ativo para evitar recálculos desnecessários.
     const activeWorkspace = React.useMemo(() => {
         return workspaces.find(ws => ws.id === activeWorkspaceId);
     }, [workspaces, activeWorkspaceId]);
 
+    // Memoriza o objeto do chat ativo.
     const activeChat = React.useMemo(() => {
         return activeWorkspace?.chats.find(chat => chat.id === activeChatId);
     }, [activeWorkspace, activeChatId]);
 
+    // Memoriza la lista de chats filtrados pela busca.
     const filteredChats = React.useMemo(() => {
         if (!activeWorkspace) return [];
         return activeWorkspace.chats.filter(chat =>
@@ -110,27 +129,31 @@ const App: React.FC = () => {
         );
     }, [activeWorkspace, searchQuery]);
 
+    // Função para criar um novo chat.
     const handleNewChat = () => {
         if (!activeWorkspaceId) return;
         const newChat: Chat = {
             id: generateId(),
             title: 'New Chat',
             messages: [],
-            model: selectedModel,
+            model: selectedModel, // Usa o modelo selecionado nas configurações.
         };
+        // Adiciona o novo chat ao início da lista no workspace ativo.
         setWorkspaces(prev => prev.map(ws => 
             ws.id === activeWorkspaceId
                 ? { ...ws, chats: [newChat, ...ws.chats] }
                 : ws
         ));
         setActiveChatId(newChat.id);
-        resetGeminiChat();
+        resetGeminiChat(); // Reseta a sessão de chat no serviço.
     };
 
+    // Função para selecionar um chat existente.
     const handleSelectChat = (id: string) => {
         const selectedChat = activeWorkspace?.chats.find(c => c.id === id);
         if (selectedChat) {
             setActiveChatId(id);
+            // Re-inicializa o chat no serviço com o histórico da conversa.
             if (selectedChat.messages.length > 0) {
                 initializeChat(selectedChat.messages, selectedChat.model);
             } else {
@@ -139,8 +162,9 @@ const App: React.FC = () => {
         }
     };
 
+    // Função para deletar um chat.
     const handleDeleteChat = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Evita que o evento de clique selecione o chat.
         if (!activeWorkspaceId) return;
 
         setWorkspaces(prevWorkspaces => prevWorkspaces.map(ws => {
@@ -151,17 +175,21 @@ const App: React.FC = () => {
 
             const newChats = ws.chats.filter(chat => chat.id !== id);
 
+            // Se o chat deletado era o ativo, seleciona um novo chat ativo.
             if (activeChatId === id) {
                 if (newChats.length > 0) {
+                    // Tenta selecionar o chat na mesma posição ou o último da lista.
                     const newActiveIndex = Math.min(chatIndex, newChats.length - 1);
                     const newActiveChat = newChats[newActiveIndex];
                     setActiveChatId(newActiveChat.id);
+                     // Inicializa o novo chat ativo no serviço Gemini.
                      if (newActiveChat.messages.length > 0) {
                         initializeChat(newActiveChat.messages, newActiveChat.model);
                     } else {
                         resetGeminiChat();
                     }
                 } else {
+                    // Se não houver mais chats, desativa a seleção.
                     setActiveChatId(null);
                     resetGeminiChat();
                 }
@@ -171,10 +199,12 @@ const App: React.FC = () => {
         }));
     };
     
+    // Função para lidar com a ativação/desativação de notificações.
     const handleNotificationsToggle = async () => {
         if (notificationPermission === 'granted') {
             setNotificationsEnabled(prev => !prev);
         } else if (notificationPermission === 'default') {
+            // Se a permissão ainda não foi solicitada, solicita ao usuário.
             const permission = await Notification.requestPermission();
             setNotificationPermission(permission);
             if (permission === 'granted') {
@@ -183,12 +213,14 @@ const App: React.FC = () => {
         }
     };
 
+    // Função para enviar uma mensagem do usuário para a IA.
     const sendMessage = async (text: string) => {
         if (!activeChatId || !activeChat || !activeWorkspaceId) return;
 
         const isFirstMessage = activeChat.messages.length === 0;
         const userMessage: Message = { role: MessageRole.USER, text };
 
+        // Adiciona a mensagem do usuário ao estado imediatamente para uma UI responsiva.
         setWorkspaces(prev => prev.map(ws => ws.id === activeWorkspaceId 
             ? { ...ws, chats: ws.chats.map(c => c.id === activeChatId ? {...c, messages: [...c.messages, userMessage]} : c) }
             : ws
@@ -199,11 +231,14 @@ const App: React.FC = () => {
         const modelForAPI = activeChat.model;
 
         try {
+            // Chama o serviço para obter a resposta da IA em stream.
             const stream = await sendMessageToGeminiStream(historyForAPI, text, modelForAPI);
             let modelResponse = '';
 
+            // Processa cada pedaço (chunk) da resposta do stream.
             for await (const chunk of stream) {
                 modelResponse += chunk;
+                // Atualiza o estado com a resposta parcial do modelo.
                 setWorkspaces(prevWorkspaces => prevWorkspaces.map(ws => {
                     if (ws.id !== activeWorkspaceId) return ws;
                     return {
@@ -214,8 +249,8 @@ const App: React.FC = () => {
                             const messages = [...chat.messages];
                             const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
-                            // If the last message is a model message, update it.
-                            // Otherwise (it's a user message or the chat is empty), add a new model message.
+                            // Se a última mensagem já é do modelo (resposta em andamento), atualiza-a.
+                            // Caso contrário, adiciona uma nova mensagem do modelo.
                             if (lastMessage && lastMessage.role === MessageRole.MODEL) {
                                 messages[messages.length - 1] = { ...lastMessage, text: modelResponse };
                             } else {
@@ -227,6 +262,7 @@ const App: React.FC = () => {
                 }));
             }
 
+            // Se for a primeira mensagem do chat, define o título do chat.
             if (isFirstMessage) {
                 const newTitle = text.substring(0, 40) + (text.length > 40 ? '...' : '');
                  setWorkspaces(prev => prev.map(ws => ws.id === activeWorkspaceId
@@ -236,12 +272,14 @@ const App: React.FC = () => {
             }
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+            // Adiciona uma mensagem de erro ao chat em caso de falha na API.
              setWorkspaces(prev => prev.map(ws => ws.id === activeWorkspaceId
                 ? { ...ws, chats: ws.chats.map(c => c.id === activeChatId ? {...c, messages: [...c.messages, { role: MessageRole.MODEL, text: `Error: ${errorMessage}`}]} : c) }
                 : ws
             ));
         } finally {
             setIsLoading(false);
+            // Envia uma notificação se estiverem ativadas e a aba não estiver em foco.
             if (notificationsEnabled && notificationPermission === 'granted' && document.hidden) {
                 new Notification('Gemini Chat', {
                     body: 'Your new message is ready!',
@@ -251,6 +289,7 @@ const App: React.FC = () => {
         }
     };
 
+    // Funções para gerenciamento de Workspaces.
     const handleCreateWorkspace = (name: string) => {
         const newWorkspace: Workspace = { id: generateId(), name, chats: [] };
         setWorkspaces(prev => [...prev, newWorkspace]);
@@ -264,6 +303,7 @@ const App: React.FC = () => {
     };
 
     const handleDeleteWorkspace = (id: string) => {
+        // Impede a exclusão do último workspace.
         if (workspaces.length <= 1) {
             alert("You cannot delete the last workspace.");
             return;
@@ -272,8 +312,8 @@ const App: React.FC = () => {
         const newWorkspaces = workspaces.filter(ws => ws.id !== id);
         setWorkspaces(newWorkspaces);
 
+        // Se o workspace deletado era o ativo, muda para o primeiro da nova lista.
         if (activeWorkspaceId === id) {
-            // If the deleted workspace was active, switch to the first available workspace.
             const newActiveWorkspace = newWorkspaces.length > 0 ? newWorkspaces[0] : null;
             setActiveWorkspaceId(newActiveWorkspace?.id || null);
             setActiveChatId(null);
@@ -281,6 +321,7 @@ const App: React.FC = () => {
         }
     };
 
+    // Função para formatar o nome do modelo para exibição.
     const formatModelName = (modelId: string) => {
         if (!modelId) return '';
         return modelId.split('-')
@@ -310,12 +351,14 @@ const App: React.FC = () => {
             <main className="flex-1 flex flex-col relative h-full bg-black">
                 <header className="flex-shrink-0 h-16 border-b border-zinc-800 flex items-center justify-between px-6">
                     <div className="flex items-center gap-2">
+                         {/* Botão para abrir/fechar a sidebar */}
                          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-md hover:bg-zinc-800">
                            <Icon className="w-6 h-6 text-zinc-400">
                             {isSidebarOpen ? <path d="m17 18-6-6 6-6"/> : <path d="m7 18 6-6-6-6"/>}
                             <path d="M7 6v12"/>
                            </Icon>
                         </button>
+                        {/* Botão para abrir o modal de configurações */}
                         <button onClick={() => setIsSettingsModalOpen(true)} className="flex items-center gap-2 p-2 rounded-md hover:bg-zinc-800">
                           <h2 className="font-semibold">Quick Settings</h2>
                            <Icon className="w-5 h-5 text-zinc-400">

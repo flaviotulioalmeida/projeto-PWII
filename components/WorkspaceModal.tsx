@@ -1,30 +1,38 @@
 import React from 'react';
 import Icon from './Icon';
 
+// Define as propriedades para o WorkspaceModal.
 interface WorkspaceModalProps {
-  mode: 'create' | 'rename';
+  mode: 'create' | 'rename'; // O modo do modal: criar ou renomear.
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (name: string) => void;
-  initialName?: string;
+  initialName?: string; // Nome inicial, usado no modo 'rename'.
 }
 
+/**
+ * Componente modal para criar ou renomear um workspace.
+ */
 const WorkspaceModal: React.FC<WorkspaceModalProps> = ({ mode, isOpen, onClose, onSubmit, initialName = '' }) => {
+  // Estado para o nome do workspace no input.
   const [name, setName] = React.useState('');
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  // Efeito para definir o nome inicial e focar o input quando o modal abre.
   React.useEffect(() => {
     if (isOpen) {
       setName(initialName);
-      // Timeout para permitir que o modal renderize antes de focar
+      // Timeout para permitir que o modal renderize antes de focar.
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, initialName]);
 
+  // Não renderiza se estiver fechado.
   if (!isOpen) {
     return null;
   }
 
+  // Lida com o envio do formulário.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
@@ -32,6 +40,7 @@ const WorkspaceModal: React.FC<WorkspaceModalProps> = ({ mode, isOpen, onClose, 
     }
   };
   
+  // Define o título e o texto do botão com base no modo.
   const title = mode === 'create' ? 'Create New Workspace' : 'Rename Workspace';
   const buttonText = mode === 'create' ? 'Create' : 'Rename';
 
@@ -44,7 +53,7 @@ const WorkspaceModal: React.FC<WorkspaceModalProps> = ({ mode, isOpen, onClose, 
     >
       <div
         className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl w-full max-w-sm p-6 m-4 text-white"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()} // Impede que o clique no conteúdo feche o modal.
       >
         <form onSubmit={handleSubmit}>
           <div className="flex justify-between items-center mb-4">
