@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Chat UI",
+  "description": "A sleek, modern chatbot interface powered by the Gemini API, featuring real-time responses, a dark-themed UI, and Progressive Web App capabilities for offline access.",
+  "requestFramePermissions": []
+}
