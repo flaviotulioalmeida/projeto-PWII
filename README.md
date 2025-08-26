@@ -34,8 +34,8 @@ Siga estes passos para executar a aplicação na sua máquina local.
 
 Primeiro, clone este repositório para a sua máquina:
 ```bash
-git clone <url-do-repositorio>
-cd <diretorio-do-repositorio>
+git clone https://github.com/flaviotulioalmeida/projeto-PWII
+cd projeto-PWII
 ```
 
 ### 2. Instale as Dependências
